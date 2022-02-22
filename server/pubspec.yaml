@@ -8,6 +8,9 @@ environment:
   sdk: ">=2.12.0 <3.0.0"
 
 dependencies:
+  logging:
+  uuid: ^3.0.6
+
   config:
     path: "../config"
 #   path: ^1.8.0

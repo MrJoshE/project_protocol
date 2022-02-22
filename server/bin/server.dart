@@ -1,22 +1,13 @@
-import 'dart:io';
-import 'dart:convert';
-
-import 'package:config/config_impl.dart';
+import 'package:logging/logging.dart';
+import 'package:server/enet_server.dart';
 
 Future main() async {
-  await startTCPServer();
-}
+  Logger.root.level = Level.ALL; // defaults to Level.INFO
+  Logger.root.onRecord.listen((record) {
+    print('${record.level.name}: ${record.time}: ${record.message}');
+  });
 
-//TCp
+  final server = EnetServer();
 
-Future startTCPServer() async {
-  final serverSocket = await ServerSocket.bind(InternetAddress.loopbackIPv4, Config.DEFAULT_PORT);
-  print('Listening on port ${serverSocket.port}');
-
-  await for (Socket socket in serverSocket) {
-    socket.cast<List<int>>().transform(utf8.decoder).listen((data) {
-      print('from ${socket.remoteAddress.address} data:' + data);
-      socket.add(utf8.encode('hello client!'));
-    });
-  }
+  await server.initialize();
 }

@@ -1,4 +1,4 @@
-import 'package:config/config_impl.dart';
+import 'package:config/config.dart';
 
 class ClientArgs {
   final int port;
@@ -13,15 +13,15 @@ class ClientArgs {
     int port;
     String host;
     try {
-      port = int.tryParse(arguments[0]) ?? Config.DEFAULT_PORT;
+      port = int.tryParse(arguments[0]) ?? EnetConfig.DEFAULT_PORT;
     } catch (e) {
-      port = Config.DEFAULT_PORT;
+      port = EnetConfig.DEFAULT_PORT;
     }
 
     try {
       host = arguments[1];
     } catch (e) {
-      host = Config.DEFAULT_HOST;
+      host = EnetConfig.DEFAULT_HOST;
     }
 
     return ClientArgs(
