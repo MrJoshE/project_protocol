@@ -1,15 +1,15 @@
-class EnetParsingResponse<T> {
+class EnetGenericResponse<T> {
   final bool success;
 
   final T? content;
 
   final String? message;
 
-  EnetParsingResponse.success(this.content)
+  EnetGenericResponse.success(this.content)
       : success = true,
         message = null;
 
-  EnetParsingResponse.failure(this.message)
+  EnetGenericResponse.failure(this.message)
       : success = false,
         content = null;
 }

@@ -6,7 +6,6 @@ import 'package:config/enet_config.dart';
 import 'package:logging/logging.dart';
 
 import 'connected_client.dart';
-import 'exceptions.dart';
 
 class EnetServerArgs {
   /// The port to listen on.
@@ -46,7 +45,7 @@ class EnetServer {
     final _serverSocket = await ServerSocket.bind(InternetAddress.loopbackIPv4, args.port);
     _logger.shout('Listening on port ${_serverSocket.port}');
 
-    _serverSocket.listen(onConnect, onDone: () {}, onError: onServerError);
+    _serverSocket.listen(onConnect, onDone: onServerClose, onError: onServerError);
   }
 
   /// This function will be called when a new connection is made.
@@ -55,36 +54,23 @@ class EnetServer {
     _connectedSockets[newSocketConnection.remoteAddress] = ConnectedClient(socket: newSocketConnection);
   }
 
-  Future serverClose(dynamic data) async {}
+  /// This function will be called when the server is closed.
+  Future onServerClose() async {
+    _logger.info('Closing all [${_connectedSockets.length}] socket connections...');
+    // Close all socket connections
+    for (final client in _connectedSockets.values) {
+      await client.socket.close();
+    }
+    _logger.info('All socket connections have been closed.');
+  }
 
-  Future onServerError(dynamic error) async {}
+  /// This function will be called when the server has an error.
+  Future onServerError(Object? error, StackTrace stackTrace) async {
+    _logger.severe('Server error: $error. Stack traace: $stackTrace');
+  }
 
   /// At the moment there are no checks to make sure the request is valid at all. Just that we are assuming the request is already cast to an EnetRequest when it tries to parse it.
   /// This is wrong and we need to accept the raw request and convert back to an EnetRequest.
-  static Future<EnetParsingResponse<EnetRequest>> parseRequest(EnetRequest request) async {
-    try {
-      if (request.method == Method.POST) {
-        throw RequestParsingException('POST requests are not supported');
-      }
-
-      return EnetParsingResponse.success(request);
-    }
-
-    /// If there is an error parsing the request we will return a failure response
-    /// with the error message
-    on RequestParsingException catch (e) {
-      /// We will also log the error in the terminal for debugging purposes
-      _logger.severe('Request parsing error: ${e.message}');
-      return EnetParsingResponse.failure('Failed to parse request. ${e.message}');
-    }
-
-    /// If there is an error that is not related to parsing the request we will
-    ///
-    catch (e, st) {
-      _logger.severe('Request parsing error: $e, $st');
-      return EnetParsingResponse.failure('Failed to parse request. See logs for more information');
-    }
-  }
 
   /// Here we will try and stop the server
   void dispose() {
