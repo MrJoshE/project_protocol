@@ -7,9 +7,9 @@ import 'exceptions.dart';
 class RequestParser {
   static final Logger _logger = Logger('RequestParser');
 
-  static Future<EnetGenericResponse<EnetRequest>> parseRequest(List<int> data) async {
+  static EnetGenericResponse<EnetRequest> parseRequest(List<int> data) {
     try {
-      final request = EnetRequest.fromBuffer(data);
+      final request = EnetRequest.fromBytes(data);
       if (request.type == EnetRequestType.dynamic) {
         throw RequestParsingException('Dynamic requests are not supported');
       }

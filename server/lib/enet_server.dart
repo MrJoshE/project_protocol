@@ -43,15 +43,15 @@ class EnetServer {
     args = args ?? EnetServerArgs();
 
     final _serverSocket = await ServerSocket.bind(InternetAddress.loopbackIPv4, args.port);
-    _logger.shout('Listening on port ${_serverSocket.port}');
+    _logger.shout('Listening on ${InternetAddress.loopbackIPv4.address}:${_serverSocket.port}');
 
     _serverSocket.listen(onConnect, onDone: onServerClose, onError: onServerError);
   }
 
   /// This function will be called when a new connection is made.
   Future onConnect(Socket newSocketConnection) async {
-    _logger.info('New connection from ${newSocketConnection.remoteAddress}');
     _connectedSockets[newSocketConnection.remoteAddress] = ConnectedClient(socket: newSocketConnection);
+    _logger.info('New connection from ${newSocketConnection.remoteAddress} [${_connectedSockets.length}]');
   }
 
   /// This function will be called when the server is closed.

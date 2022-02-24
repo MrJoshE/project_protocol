@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'dart:io';
 
 import 'package:config/config.dart';
@@ -16,7 +15,12 @@ class EnetClient {
 
   EnetClient({this.options});
 
-  Future<EnetResponse> get(String path, {Map<String, String>? headers, List<String>? files}) async {
+  Future<EnetResponse> static(
+    String path, {
+    Map<String, dynamic>? applicationHeaders,
+    Map<String, dynamic>? headers,
+    List<String>? files,
+  }) async {
     if (options?.baseUrl != null) {
       path = '${options!.baseUrl}$path';
     }
@@ -26,6 +30,7 @@ class EnetClient {
       headers: headers,
       body: null,
       files: files,
+      applicationHeaders: applicationHeaders,
     );
 
     return await _sendRequest(request);
@@ -33,8 +38,9 @@ class EnetClient {
 
   EnetRequest _createRequest({
     required String path,
-    Map<String, String>? headers,
-    Map<String, String>? body,
+    Map<String, dynamic>? applicationHeaders,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? body,
 
     /// Binary blobs of files (base64 encoded)
     List<String>? files,
@@ -51,15 +57,14 @@ class EnetClient {
 
   Future<EnetResponse> _sendRequest(EnetRequest request) async {
     /// 1. Create a socket connection with the sever.
-    final socket = await Socket.connect(request.path, options?.port ?? EnetConfig.DEFAULT_PORT);
+    final socket = await Socket.connect(options?.baseUrl ?? request.path, options?.port ?? EnetConfig.DEFAULT_PORT);
 
     if (request.persist) {
       _persitedSockets[request.socketId!] = socket;
     }
 
     /// 2. Make a request to the server
-
-    socket.write(json.encode(request));
+    socket.write(request.toPayload());
 
     /// 3. Wait for the response
     final response = EnetResponse.fromRawResponse(await socket.first);

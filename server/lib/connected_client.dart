@@ -1,8 +1,10 @@
-import 'dart:convert';
 import 'dart:io';
 
+import 'package:config/config.dart';
 import 'package:logging/logging.dart';
 import 'package:uuid/uuid.dart';
+
+import 'request_parser.dart';
 
 const Uuid UUID = Uuid();
 
@@ -15,17 +17,29 @@ class ConnectedClient {
   ConnectedClient({
     required this.socket,
   }) {
-    _logger.info('Client $uuid connected');
+    _logger.info('Client $uuid connected ');
     // Listen for incoming data.
-    socket.listen(onRawRequestRecieved, onDone: () {
-      socket.close();
-    });
+    socket.listen(
+      onRequest,
+      onDone: () {
+        socket.close();
+      },
+      onError: (error) {
+        _logger.severe('Client $uuid error $error');
+      },
+    );
   }
 
-  void onRawRequestRecieved(List<int> data) {
-    _logger.info('[$uuid] Received data: ${utf8.decode(data)}');
+  void onRequest(List<int> data) {
+    // _logger.info('[$uuid] Received data: ${utf8.decode(data)}');
+    print('\n\n');
+    final request = RequestParser.parseRequest(data);
 
-    _logger.info('[$uuid] Sending data: ${utf8.decode(data)}');
-    socket.write(utf8.decode(data));
+    if (request.success) {
+      socket.write(EnetResponse.success());
+    } else {
+      _logger.severe('There was an error whilst parsing request: ${request.message}');
+      socket.write(EnetResponse.error());
+    }
   }
 }

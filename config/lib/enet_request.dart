@@ -16,11 +16,11 @@ class EnetRequest {
   /// Reflection of a HTTP header however instead of a string we use a Map
   /// this is used for low level information about the client
   /// such as IP address and user agent
-  final Map<String, String>? headers;
+  final Map<String, dynamic>? headers;
 
-  final Map<String, String>? applicationHeaders;
+  final Map<String, dynamic>? applicationHeaders;
 
-  final Map<String, String>? body;
+  final Map<String, dynamic>? body;
 
   final List<String>? files;
 
@@ -41,27 +41,36 @@ class EnetRequest {
     }
   }
 
-  factory EnetRequest.fromBuffer(List<int> data) {
-    final decoded = utf8.decode(data);
+  factory EnetRequest.fromBytes(List<int> data) {
+    final buffer = utf8.decode(data);
 
-    print(decoded);
-
-    final methodString = decoded.substring(decoded.indexOf('<\$M>') + 4, decoded.indexOf('</\$M>'));
-
-    print('methodString: $methodString');
+    print(buffer + '\n');
 
     return EnetRequest(
       path: 'NOT VALID PATH',
     );
   }
 
-  List<int> convertIntoRawRequest() {
+  String toPayload() {
     final buffer = StringBuffer();
 
-    buffer.write('<\$P>$path</\$P>');
+    buffer.write('|P:$path');
 
-    buffer.write('<\$T>${type.toString().split('.')[1].toUpperCase()}</\$T>');
+    buffer.write(
+        '|T:${type.toString().split('.')[1].toUpperCase().length}>${type.toString().split('.')[1].toUpperCase()}');
 
-    return utf8.encode(buffer.toString());
+    return buffer.toString();
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'path': path,
+      'type': type.toString().split('.')[1].toUpperCase(),
+      'headers': headers,
+      'applicationHeaders': applicationHeaders,
+      'body': body,
+      'files': files,
+      'persist': persist,
+    };
   }
 }
