@@ -2,16 +2,11 @@ import 'dart:convert';
 
 enum EnetRequestType { static, dynamic }
 
-enum Method { GET, POST, PUT, DELETE, BATCH }
-
 class EnetRequest {
   final String? socketId;
 
   /// We require the path of the request (e.g. /api/v1/users/1)
   final String path;
-
-  /// We require the method of the request (e.g. GET, POST, PUT, DELETE)
-  final Method method;
 
   /// We require the type of the request (e.g. static, dynamic)
   /// Static requests are made once and cached
@@ -19,7 +14,11 @@ class EnetRequest {
   final EnetRequestType type;
 
   /// Reflection of a HTTP header however instead of a string we use a Map
-  final Map<String, String>? head;
+  /// this is used for low level information about the client
+  /// such as IP address and user agent
+  final Map<String, String>? headers;
+
+  final Map<String, String>? applicationHeaders;
 
   final Map<String, String>? body;
 
@@ -29,11 +28,11 @@ class EnetRequest {
 
   EnetRequest({
     required this.path,
-    required this.method,
     this.socketId,
     this.files,
     this.type = EnetRequestType.static,
-    this.head = const {},
+    this.headers = const {},
+    this.applicationHeaders = const {},
     this.body = const {},
     this.persist = false,
   }) {
@@ -51,7 +50,9 @@ class EnetRequest {
 
     print('methodString: $methodString');
 
-    return EnetRequest(path: 'NOT VALID PATH', method: Method.GET);
+    return EnetRequest(
+      path: 'NOT VALID PATH',
+    );
   }
 
   List<int> convertIntoRawRequest() {
@@ -59,7 +60,7 @@ class EnetRequest {
 
     buffer.write('<\$P>$path</\$P>');
 
-    buffer.write('<\$M>${method.toString().split('.')[1].toUpperCase()}</\$M>');
+    buffer.write('<\$T>${type.toString().split('.')[1].toUpperCase()}</\$T>');
 
     return utf8.encode(buffer.toString());
   }

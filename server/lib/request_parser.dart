@@ -10,8 +10,8 @@ class RequestParser {
   static Future<EnetGenericResponse<EnetRequest>> parseRequest(List<int> data) async {
     try {
       final request = EnetRequest.fromBuffer(data);
-      if (request.method == Method.POST) {
-        throw RequestParsingException('POST requests are not supported');
+      if (request.type == EnetRequestType.dynamic) {
+        throw RequestParsingException('Dynamic requests are not supported');
       }
 
       return EnetGenericResponse.success(request);

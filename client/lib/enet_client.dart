@@ -16,15 +16,14 @@ class EnetClient {
 
   EnetClient({this.options});
 
-  Future<EnetResponse> get(String path, {Map<String, String>? head, List<String>? files}) async {
+  Future<EnetResponse> get(String path, {Map<String, String>? headers, List<String>? files}) async {
     if (options?.baseUrl != null) {
       path = '${options!.baseUrl}$path';
     }
 
     final request = _createRequest(
-      method: Method.GET,
       path: path,
-      head: head,
+      headers: headers,
       body: null,
       files: files,
     );
@@ -33,18 +32,16 @@ class EnetClient {
   }
 
   EnetRequest _createRequest({
-    required Method method,
     required String path,
-    Map<String, String>? head,
+    Map<String, String>? headers,
     Map<String, String>? body,
 
     /// Binary blobs of files (base64 encoded)
     List<String>? files,
   }) {
     final request = EnetRequest(
-      method: method,
       path: path,
-      head: head,
+      headers: headers,
       body: body,
       files: files,
     );
